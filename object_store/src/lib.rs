@@ -240,7 +240,6 @@ pub mod memory;
 pub mod path;
 pub mod prefix;
 pub mod throttle;
-pub mod multi_upload;
 pub mod multipart;
 
 #[cfg(any(feature = "gcp", feature = "aws", feature = "azure", feature = "http"))]
