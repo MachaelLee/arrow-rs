@@ -240,7 +240,6 @@ pub mod memory;
 pub mod path;
 pub mod prefix;
 pub mod throttle;
-pub mod multipart;
 
 #[cfg(any(feature = "gcp", feature = "aws", feature = "azure", feature = "http"))]
 mod client;
@@ -248,8 +247,8 @@ mod client;
 #[cfg(any(feature = "gcp", feature = "aws", feature = "azure", feature = "http"))]
 pub use client::{backoff::BackoffConfig, retry::RetryConfig};
 
-#[cfg(any(feature = "azure", feature = "aws", feature = "gcp"))]
-mod multipart;
+// #[cfg(any(feature = "azure", feature = "aws", feature = "gcp"))]
+pub mod multipart;
 mod util;
 
 use crate::path::Path;
