@@ -43,7 +43,7 @@ pub trait CloudMultiPartUploadImpl: 'static {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct UploadPart {
+pub struct UploadPart {
     pub content_id: String,
 }
 
