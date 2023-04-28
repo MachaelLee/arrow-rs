@@ -91,7 +91,11 @@ where
         }
     }
 
-    pub fn new_with_part_size(inner: T, max_concurrency: usize, min_part_size: usize) -> Self {
+    pub fn new_with_part_size(
+        inner: T,
+        max_concurrency: usize,
+        min_part_size: usize,
+    ) -> Self {
         Self {
             inner: Arc::new(inner),
             completed_parts: Vec::new(),
