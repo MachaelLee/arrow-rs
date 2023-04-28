@@ -91,6 +91,19 @@ where
         }
     }
 
+    pub fn new_with_part_size(inner: T, max_concurrency: usize, min_part_size: usize) -> Self {
+        Self {
+            inner: Arc::new(inner),
+            completed_parts: Vec::new(),
+            tasks: FuturesUnordered::new(),
+            max_concurrency,
+            current_buffer: Vec::new(),
+            min_part_size: min_part_size,
+            current_part_idx: 0,
+            completion_task: None,
+        }
+    }
+
     pub fn poll_tasks(
         mut self: Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
