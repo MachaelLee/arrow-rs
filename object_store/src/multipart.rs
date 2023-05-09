@@ -143,13 +143,20 @@ where
 
         // If current_buffer is not empty, see if it can be submitted
         if !self.current_buffer.is_empty() && self.tasks.len() < self.max_concurrency {
-            let out_buffer: Vec<u8> = std::mem::take(&mut self.current_buffer);
-            let inner = Arc::clone(&self.inner);
-            let part_idx = self.current_part_idx;
-            self.tasks.push(Box::pin(async move {
-                let upload_part = inner.put_multipart_part(out_buffer, part_idx).await?;
-                Ok((part_idx, upload_part))
-            }));
+            let part_size = self.min_part_size;
+            while self.current_buffer.len() > 0 {
+                let size = part_size.min(self.current_buffer.len());
+                let out_buffer = self.current_buffer.drain(0..size).collect::<Vec<_>>();
+
+                let inner = Arc::clone(&self.inner);
+                let part_idx = self.current_part_idx;
+                self.tasks.push(Box::pin(async move {
+                    let upload_part =
+                        inner.put_multipart_part(out_buffer, part_idx).await?;
+                    Ok((part_idx, upload_part))
+                }));
+                self.current_part_idx += 1;
+            }
         }
 
         self.as_mut().poll_tasks(cx)?;
@@ -177,21 +184,24 @@ where
 
         // If adding buf to pending buffer would trigger send, check
         // whether we have capacity for another task.
-        let enough_to_send =
-            (buf.len() + self.current_buffer.len()) >= self.min_part_size;
+        let part_size = self.min_part_size;
+        let mut enough_to_send = (buf.len() + self.current_buffer.len()) >= part_size;
         if enough_to_send && self.tasks.len() < self.max_concurrency {
             // If we do, copy into the buffer and submit the task, and return ready.
             self.current_buffer.extend_from_slice(buf);
-
-            let out_buffer = std::mem::take(&mut self.current_buffer);
-            let inner = Arc::clone(&self.inner);
-            let part_idx = self.current_part_idx;
-            self.tasks.push(Box::pin(async move {
-                let upload_part = inner.put_multipart_part(out_buffer, part_idx).await?;
-                Ok((part_idx, upload_part))
-            }));
-            self.current_part_idx += 1;
-
+            while enough_to_send {
+                let out_buffer =
+                    self.current_buffer.drain(0..part_size).collect::<Vec<_>>();
+                let inner = Arc::clone(&self.inner);
+                let part_idx = self.current_part_idx;
+                self.tasks.push(Box::pin(async move {
+                    let upload_part =
+                        inner.put_multipart_part(out_buffer, part_idx).await?;
+                    Ok((part_idx, upload_part))
+                }));
+                self.current_part_idx += 1;
+                enough_to_send = self.current_buffer.len() >= part_size;
+            }
             // We need to poll immediately after adding to setup waker
             self.as_mut().poll_tasks(cx)?;
 
