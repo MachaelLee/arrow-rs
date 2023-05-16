@@ -209,6 +209,7 @@ impl ObjectStore for AmazonS3 {
         let instant = Instant::now();
 
         let response = self.client.get_request(location, None, false).await?;
+        info!("aws get cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
         let stream = response
             .bytes_stream()
             .map_err(|source| crate::Error::Generic {
@@ -217,7 +218,6 @@ impl ObjectStore for AmazonS3 {
             })
             .boxed();
 
-        info!("aws get cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
         Ok(GetResult::Stream(stream))
     }
 
@@ -227,6 +227,8 @@ impl ObjectStore for AmazonS3 {
             .client
             .get_request(location, Some(range), false)
             .await?;
+        info!("aws get_range cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
+
         let bytes = response
             .bytes()
             .await
@@ -234,7 +236,6 @@ impl ObjectStore for AmazonS3 {
                 source,
                 path: location.to_string(),
             })?;
-        info!("aws get_range cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
         Ok(bytes)
     }
 
@@ -246,6 +247,7 @@ impl ObjectStore for AmazonS3 {
         // https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html#API_HeadObject_ResponseSyntax
         let response = self.client.get_request(location, None, true).await?;
         let headers = response.headers();
+        info!("aws head cost:{}, hearders:{:?}", instant.elapsed().as_millis(), headers);
 
         let last_modified = headers
             .get(LAST_MODIFIED)
@@ -267,8 +269,6 @@ impl ObjectStore for AmazonS3 {
 
         let e_tag = headers.get(ETAG).context(MissingEtagSnafu)?;
         let e_tag = e_tag.to_str().context(BadHeaderSnafu)?;
-
-        info!("aws head cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
 
         Ok(ObjectMeta {
             location: location.clone(),
