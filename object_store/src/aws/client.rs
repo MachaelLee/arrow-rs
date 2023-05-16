@@ -39,6 +39,7 @@ use serde::{Deserialize, Serialize};
 use snafu::{ResultExt, Snafu};
 use std::ops::Range;
 use std::sync::Arc;
+use std::time::Instant;
 
 /// A specialized `Error` for object store-related errors
 #[derive(Debug, Snafu)]
@@ -332,10 +333,11 @@ impl S3Client {
         path: &Path,
         query: &T,
     ) -> Result<()> {
+        let instant = Instant::now();
         let credential = self.get_credential().await?;
         let url = self.config.path_url(path);
 
-        self.client
+        let response = self.client
             .request(Method::DELETE, url)
             .query(query)
             .with_aws_sigv4(
@@ -346,7 +348,9 @@ impl S3Client {
                 None,
             )
             .send_retry(&self.config.retry_config)
-            .await
+            .await;
+        info!("aws delete cost:{}，headers:{}",instant.elapsed().as_millis(),response.headers);
+        response
             .context(DeleteRequestSnafu {
                 path: path.as_ref(),
             })?;

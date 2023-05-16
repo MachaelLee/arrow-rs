@@ -63,6 +63,8 @@ use crate::{
 mod checksum;
 mod client;
 mod credential;
+use std::time::Instant;
+
 
 // http://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
 //
@@ -205,6 +207,8 @@ impl ObjectStore for AmazonS3 {
     }
 
     async fn get(&self, location: &Path) -> Result<GetResult> {
+        let instant = Instant::now();
+
         let response = self.client.get_request(location, None, false).await?;
         let stream = response
             .bytes_stream()
@@ -214,24 +218,29 @@ impl ObjectStore for AmazonS3 {
             })
             .boxed();
 
+        info!("aws get cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers);
         Ok(GetResult::Stream(stream))
     }
 
     async fn get_range(&self, location: &Path, range: Range<usize>) -> Result<Bytes> {
-        let bytes = self
+        let instant = Instant::now();
+        let response = self
             .client
             .get_request(location, Some(range), false)
-            .await?
+            .await?;
+        let bytes = response
             .bytes()
             .await
             .map_err(|source| client::Error::GetResponseBody {
                 source,
                 path: location.to_string(),
             })?;
+        info!("aws get_range cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers);
         Ok(bytes)
     }
 
     async fn head(&self, location: &Path) -> Result<ObjectMeta> {
+        let instant = Instant::now();
         use reqwest::header::{CONTENT_LENGTH, ETAG, LAST_MODIFIED};
 
         // Extract meta from headers
@@ -259,6 +268,8 @@ impl ObjectStore for AmazonS3 {
 
         let e_tag = headers.get(ETAG).context(MissingEtagSnafu)?;
         let e_tag = e_tag.to_str().context(BadHeaderSnafu)?;
+
+        info!("aws head cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers);
 
         Ok(ObjectMeta {
             location: location.clone(),
