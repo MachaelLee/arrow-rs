@@ -466,10 +466,12 @@ impl S3Client {
     }
 
     pub async fn create_multipart(&self, location: &Path) -> Result<MultipartId> {
+        let instant: Instant = Instant::now();
+
         let credential = self.get_credential().await?;
         let url = format!("{}?uploads=", self.config.path_url(location),);
 
-        let response = self
+        let context = self
             .client
             .request(Method::POST, url)
             .with_aws_sigv4(
@@ -481,7 +483,10 @@ impl S3Client {
             )
             .send_retry(&self.config.retry_config)
             .await
-            .context(CreateMultipartRequestSnafu)?
+            .context(CreateMultipartRequestSnafu)?;
+        info!("aws create_multipart cost:{},headers:{:?}",instant.elapsed().as_millis(),context.headers());
+
+        let response = context
             .bytes()
             .await
             .context(CreateMultipartResponseBodySnafu)?;
@@ -498,6 +503,8 @@ impl S3Client {
         upload_id: &str,
         parts: Vec<UploadPart>,
     ) -> Result<()> {
+        let instant: Instant = Instant::now();
+
         let parts = parts
             .into_iter()
             .enumerate()
@@ -513,7 +520,7 @@ impl S3Client {
         let credential = self.get_credential().await?;
         let url = self.config.path_url(location);
 
-        self.client
+        let response = self.client
             .request(Method::POST, url)
             .query(&[("uploadId", upload_id)])
             .body(body)
@@ -527,6 +534,7 @@ impl S3Client {
             .send_retry(&self.config.retry_config)
             .await
             .context(CompleteMultipartRequestSnafu)?;
+        info!("aws complete_multipart cost:{},headers:{:?}",instant.elapsed().as_millis(),response.headers());
 
         Ok(())
     }

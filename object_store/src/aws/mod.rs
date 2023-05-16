@@ -185,6 +185,8 @@ impl ObjectStore for AmazonS3 {
         &self,
         location: &Path,
     ) -> Result<(MultipartId, Box<dyn AsyncWrite + Unpin + Send>)> {
+        let instant = Instant::now();
+
         let id = self.client.create_multipart(location).await?;
 
         let upload = S3MultiPartUpload {
@@ -353,6 +355,8 @@ impl CloudMultiPartUploadImpl for S3MultiPartUpload {
         buf: Vec<u8>,
         part_idx: usize,
     ) -> Result<UploadPart, std::io::Error> {
+        let instant = Instant::now();
+
         use reqwest::header::ETAG;
         let part = (part_idx + 1).to_string();
 
@@ -364,6 +368,8 @@ impl CloudMultiPartUploadImpl for S3MultiPartUpload {
                 &[("partNumber", &part), ("uploadId", &self.upload_id)],
             )
             .await?;
+
+        infox!("aws put_multipart_part cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
 
         let etag = response
             .headers()
