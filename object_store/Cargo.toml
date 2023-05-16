@@ -41,6 +41,7 @@ tracing = { version = "0.1" }
 url = "2.2"
 walkdir = "2"
 time = "0.3"
+log = "0.4"
 
 # Cloud storage support
 base64 = { version = "0.21", default-features = false, features = ["std"], optional = true }
