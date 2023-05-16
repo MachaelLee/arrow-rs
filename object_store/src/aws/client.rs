@@ -349,12 +349,10 @@ impl S3Client {
                 None,
             )
             .send_retry(&self.config.retry_config)
-            .await;
-        info!("aws delete cost:{}，headers:{}",instant.elapsed().as_millis(),response.headers());
-        response
-            .context(DeleteRequestSnafu {
+            .await.context(DeleteRequestSnafu {
                 path: path.as_ref(),
             })?;
+        info!("aws delete cost:{},headers:{:?}",instant.elapsed().as_millis(),response.headers());
 
         Ok(())
     }

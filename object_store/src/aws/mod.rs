@@ -64,7 +64,6 @@ mod checksum;
 mod client;
 mod credential;
 use std::time::Instant;
-use log::{info};
 
 // http://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
 //
