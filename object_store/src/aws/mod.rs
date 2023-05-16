@@ -64,6 +64,7 @@ mod checksum;
 mod client;
 mod credential;
 use std::time::Instant;
+use log::{info as infox};
 
 // http://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
 //
@@ -209,7 +210,7 @@ impl ObjectStore for AmazonS3 {
         let instant = Instant::now();
 
         let response = self.client.get_request(location, None, false).await?;
-        info!("aws get cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
+        infox!("aws get cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
         let stream = response
             .bytes_stream()
             .map_err(|source| crate::Error::Generic {
@@ -227,7 +228,7 @@ impl ObjectStore for AmazonS3 {
             .client
             .get_request(location, Some(range), false)
             .await?;
-        info!("aws get_range cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
+        infox!("aws get_range cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
 
         let bytes = response
             .bytes()
@@ -247,7 +248,7 @@ impl ObjectStore for AmazonS3 {
         // https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html#API_HeadObject_ResponseSyntax
         let response = self.client.get_request(location, None, true).await?;
         let headers = response.headers();
-        info!("aws head cost:{}, hearders:{:?}", instant.elapsed().as_millis(), headers);
+        infox!("aws head cost:{}, hearders:{:?}", instant.elapsed().as_millis(), headers);
 
         let last_modified = headers
             .get(LAST_MODIFIED)
