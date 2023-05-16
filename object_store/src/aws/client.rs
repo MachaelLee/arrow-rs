@@ -40,6 +40,7 @@ use snafu::{ResultExt, Snafu};
 use std::ops::Range;
 use std::sync::Arc;
 use std::time::Instant;
+use log::{info};
 
 /// A specialized `Error` for object store-related errors
 #[derive(Debug, Snafu)]
@@ -349,7 +350,7 @@ impl S3Client {
             )
             .send_retry(&self.config.retry_config)
             .await;
-        info!("aws delete cost:{}，headers:{}",instant.elapsed().as_millis(),response.headers);
+        info!("aws delete cost:{}，headers:{}",instant.elapsed().as_millis(),response.headers());
         response
             .context(DeleteRequestSnafu {
                 path: path.as_ref(),

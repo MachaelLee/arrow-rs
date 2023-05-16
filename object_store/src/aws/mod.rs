@@ -64,7 +64,7 @@ mod checksum;
 mod client;
 mod credential;
 use std::time::Instant;
-
+use log::{info};
 
 // http://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
 //
@@ -218,7 +218,7 @@ impl ObjectStore for AmazonS3 {
             })
             .boxed();
 
-        info!("aws get cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers);
+        info!("aws get cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
         Ok(GetResult::Stream(stream))
     }
 
@@ -235,7 +235,7 @@ impl ObjectStore for AmazonS3 {
                 source,
                 path: location.to_string(),
             })?;
-        info!("aws get_range cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers);
+        info!("aws get_range cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
         Ok(bytes)
     }
 
@@ -269,7 +269,7 @@ impl ObjectStore for AmazonS3 {
         let e_tag = headers.get(ETAG).context(MissingEtagSnafu)?;
         let e_tag = e_tag.to_str().context(BadHeaderSnafu)?;
 
-        info!("aws head cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers);
+        info!("aws head cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
 
         Ok(ObjectMeta {
             location: location.clone(),
