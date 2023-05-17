@@ -230,8 +230,7 @@ impl ObjectStore for AmazonS3 {
             .client
             .get_request(location, Some(range), false)
             .await?;
-        infox!("aws get_range cost:{}, location:{}, hearders:{:?}", instant.elapsed().as_millis(), location, response.headers());
-
+        
         let bytes = response
             .bytes()
             .await
@@ -239,6 +238,8 @@ impl ObjectStore for AmazonS3 {
                 source,
                 path: location.to_string(),
             })?;
+        infox!("aws get_range cost:{}, location:{}, hearders:{:?}", instant.elapsed().as_millis(), location, response.headers());
+
         Ok(bytes)
     }
 
