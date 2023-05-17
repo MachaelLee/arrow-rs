@@ -352,7 +352,7 @@ impl S3Client {
             .await.context(DeleteRequestSnafu {
                 path: path.as_ref(),
             })?;
-        info!("aws delete cost:{},headers:{:?}",instant.elapsed().as_millis(),response.headers());
+        info!("aws delete cost:{},location:{},headers:{:?}",instant.elapsed().as_millis(),path,response.headers());
 
         Ok(())
     }
@@ -484,7 +484,7 @@ impl S3Client {
             .send_retry(&self.config.retry_config)
             .await
             .context(CreateMultipartRequestSnafu)?;
-        info!("aws create_multipart cost:{},headers:{:?}",instant.elapsed().as_millis(),context.headers());
+        info!("aws create_multipart cost:{}, location:{}, headers:{:?}",instant.elapsed().as_millis(), location, context.headers());
 
         let response = context
             .bytes()
@@ -534,7 +534,7 @@ impl S3Client {
             .send_retry(&self.config.retry_config)
             .await
             .context(CompleteMultipartRequestSnafu)?;
-        info!("aws complete_multipart cost:{},headers:{:?}",instant.elapsed().as_millis(),response.headers());
+        info!("aws complete_multipart cost:{}, location:{}, headers:{:?}",instant.elapsed().as_millis(), location, response.headers());
 
         Ok(())
     }

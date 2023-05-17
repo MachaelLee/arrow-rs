@@ -212,7 +212,7 @@ impl ObjectStore for AmazonS3 {
         let instant = Instant::now();
 
         let response = self.client.get_request(location, None, false).await?;
-        infox!("aws get cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
+        infox!("aws get cost:{}, location:{}, hearders:{:?}", instant.elapsed().as_millis(), location, response.headers());
         let stream = response
             .bytes_stream()
             .map_err(|source| crate::Error::Generic {
@@ -230,7 +230,7 @@ impl ObjectStore for AmazonS3 {
             .client
             .get_request(location, Some(range), false)
             .await?;
-        infox!("aws get_range cost:{}, hearders:{:?}", instant.elapsed().as_millis(), response.headers());
+        infox!("aws get_range cost:{}, location:{}, hearders:{:?}", instant.elapsed().as_millis(), location, response.headers());
 
         let bytes = response
             .bytes()
@@ -250,7 +250,7 @@ impl ObjectStore for AmazonS3 {
         // https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html#API_HeadObject_ResponseSyntax
         let response = self.client.get_request(location, None, true).await?;
         let headers = response.headers();
-        infox!("aws head cost:{}, hearders:{:?}", instant.elapsed().as_millis(), headers);
+        infox!("aws head cost:{}, location:{}, hearders:{:?}", instant.elapsed().as_millis(), location, headers);
 
         let last_modified = headers
             .get(LAST_MODIFIED)
