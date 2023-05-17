@@ -230,7 +230,7 @@ impl ObjectStore for AmazonS3 {
             .client
             .get_request(location, Some(range), false)
             .await?;
-        let headers = response.headers();
+        let headers = &response.headers();
         let bytes = response
             .bytes()
             .await
