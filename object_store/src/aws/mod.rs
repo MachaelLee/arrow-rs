@@ -63,7 +63,7 @@ use crate::{
 mod checksum;
 mod client;
 mod credential;
-use std::time::Instant;
+use std::{thread,time::Instant};
 use log::{info as infox};
 
 // http://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
