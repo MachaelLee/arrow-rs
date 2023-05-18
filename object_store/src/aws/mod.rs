@@ -374,7 +374,7 @@ impl CloudMultiPartUploadImpl for S3MultiPartUpload {
             )
             .await?;
 
-        infox!("aws put_multipart_part location:{},id:{},cost:{}, thread:{}-{}, hearders:{:?}", &self.location, self.upload.id, instant.elapsed().as_millis(), thread_name,thread_id, response.headers());
+        infox!("aws put_multipart_part location:{},id:{},cost:{}, thread:{}-{:?}, hearders:{:?}", &self.location, &self.upload_id, instant.elapsed().as_millis(), thread_name,thread_id, response.headers());
 
         let etag = response
             .headers()
