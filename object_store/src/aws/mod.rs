@@ -191,7 +191,7 @@ impl ObjectStore for AmazonS3 {
 
         let id = self.client.create_multipart(location).await?;
 
-        infox!("aws put_multipart cost:{}, location:{}, thread:{}-{}, id:{:?}", instant.elapsed().as_millis(), location, thread_name, thread_id, id);
+        infox!("aws put_multipart cost:{}, location:{}, thread:{}-{:?}, id:{:?}", instant.elapsed().as_millis(), location, thread_name, thread_id, id);
 
         let upload = S3MultiPartUpload {
             location: location.clone(),
