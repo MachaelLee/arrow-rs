@@ -186,10 +186,12 @@ impl ObjectStore for AmazonS3 {
         location: &Path,
     ) -> Result<(MultipartId, Box<dyn AsyncWrite + Unpin + Send>)> {
         let instant = Instant::now();
+        let thread_name = thread::current().name().unwrap_or("noname").to_string();
+        let thread_id = thread::current().id();
 
         let id = self.client.create_multipart(location).await?;
 
-        infox!("aws put_multipart cost:{}, location:{}, id:{:?}", instant.elapsed().as_millis(), location, id);
+        infox!("aws put_multipart cost:{}, location:{}, thread:{}-{}, id:{:?}", instant.elapsed().as_millis(), location, thread_name, thread_id, id);
 
         let upload = S3MultiPartUpload {
             location: location.clone(),
